@@ -82,7 +82,7 @@ export function renderProfileList() {
     updateProfileNameDisplay();
 
     if (profiles.length === 0) {
-        profileList.innerHTML = '<div class="profile-empty">Inga profiler tillagda.<br>Ladda upp en PDF för att skapa en profil.</div>';
+        profileList.innerHTML = '<div class="profile-empty">Inga profiler tillagda.<br>Tryck + för att skapa en profil.</div>';
         return;
     }
 
@@ -405,4 +405,138 @@ export function getActiveProfileName() {
         return profiles[activeProfileIndex].name;
     }
     return null;
+}
+
+// Create an empty profile (without PDF)
+export function createEmptyProfile(name) {
+    const profile = {
+        id: Date.now(),
+        name: name || 'Ny profil',
+        period: '',
+        data: {
+            fpDays: new Set(),
+            fpvDays: new Set(),
+            afdDays: new Set(),
+            parentalLeaveDays: new Set(),
+            vacationDays: new Set(),
+            shiftData: new Map(),
+            manualFpDays: new Set(),
+            manualFpvDays: new Set()
+        }
+    };
+
+    profiles.push(profile);
+    setActiveProfileIndex(profiles.length - 1);
+
+    loadProfileData(activeProfileIndex);
+    renderProfileList();
+    if (refreshAllViewsCallback) refreshAllViewsCallback();
+    notifyDataChanged();
+
+    return profile;
+}
+
+// Show create profile modal (choice between empty or PDF)
+export function showCreateProfileModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'createProfileModal';
+    modal.innerHTML = `
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 340px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-primary);">Skapa profil</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                Välj hur du vill skapa din profil:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-primary" id="createEmptyProfileBtn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 16px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Tom profil</span>
+                </button>
+                <button class="btn-secondary" id="createPdfProfileBtn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 16px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    <span>Ladda upp PDF</span>
+                </button>
+            </div>
+            <button class="btn-secondary" id="createProfileCancel" style="width: 100%; margin-top: 16px;">Avbryt</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('createEmptyProfileBtn').addEventListener('click', () => {
+        modal.remove();
+        showNameProfileModal();
+    });
+
+    document.getElementById('createPdfProfileBtn').addEventListener('click', () => {
+        modal.remove();
+        document.getElementById('pdfFileInput').click();
+    });
+
+    document.getElementById('createProfileCancel').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
+
+// Show name input modal for empty profile
+function showNameProfileModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'nameProfileModal';
+    modal.innerHTML = `
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 340px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-primary);">Namnge profil</h2>
+            <input type="text" id="newProfileNameInput" placeholder="Ange namn..."
+                   style="width: 100%; padding: 12px 14px; font-size: 16px; border: 1px solid var(--border);
+                          border-radius: 10px; background: var(--bg-secondary); color: var(--text-primary);
+                          margin-bottom: 20px; box-sizing: border-box;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" id="nameProfileCancel" style="flex: 1;">Avbryt</button>
+                <button class="btn-primary" id="nameProfileConfirm" style="flex: 1;">Skapa</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const input = document.getElementById('newProfileNameInput');
+    setTimeout(() => input.focus(), 100);
+
+    const confirmCreate = () => {
+        const name = input.value.trim();
+        if (name) {
+            createEmptyProfile(name);
+            modal.remove();
+            // Close side panel if open
+            const sidePanelOverlay = document.getElementById('sidePanelOverlay');
+            if (sidePanelOverlay) sidePanelOverlay.classList.remove('active');
+        }
+    };
+
+    document.getElementById('nameProfileConfirm').addEventListener('click', confirmCreate);
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmCreate();
+        }
+    });
+
+    document.getElementById('nameProfileCancel').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
 }

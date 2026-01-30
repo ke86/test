@@ -47,7 +47,7 @@ import {
     renderProfileList, renderWorkingTodayList, updateProfileNameDisplay,
     switchToProfile, saveCurrentDataToProfile, loadProfileData,
     createProfileFromPdf, clearCalendarDataSilent, getActiveProfileName,
-    setProfileCallbacks
+    setProfileCallbacks, showCreateProfileModal
 } from './profiles.js';
 
 import {
@@ -750,9 +750,9 @@ if (loadScheduleBtn) {
     });
 }
 
-// Add profile button
+// Add profile button - show choice modal
 document.getElementById('addProfileBtn').addEventListener('click', () => {
-    document.getElementById('pdfFileInput').click();
+    showCreateProfileModal();
 });
 
 // ===== INITIALIZATION =====
