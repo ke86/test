@@ -634,6 +634,13 @@ scheduleSelect.addEventListener('change', () => {
 });
 
 applySelectedScheduleBtn.addEventListener('click', () => {
+    // Check if there's an active profile first
+    if (activeProfileIndex < 0 || profiles.length === 0) {
+        document.getElementById('settingsModalOverlay').classList.remove('active');
+        showNoProfileWarning();
+        return;
+    }
+
     const selectedScheduleName = scheduleSelect.value;
     const selectedPosition = parseInt(positionSelect.value) || 1;
 
