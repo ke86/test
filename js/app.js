@@ -739,6 +739,12 @@ applySelectedScheduleBtn.addEventListener('click', () => {
 const loadScheduleBtn = document.getElementById('loadScheduleBtn');
 if (loadScheduleBtn) {
     loadScheduleBtn.addEventListener('click', () => {
+        // Check if there's an active profile first
+        if (activeProfileIndex < 0 || profiles.length === 0) {
+            showNoProfileWarning();
+            return;
+        }
+
         document.getElementById('settingsModalOverlay').classList.add('active');
 
         const scheduleContent = document.getElementById('scheduleSettingsContent');
@@ -747,6 +753,46 @@ if (loadScheduleBtn) {
             scheduleContent.style.display = 'block';
             scheduleArrow.classList.add('expanded');
         }
+    });
+}
+
+// Show warning when no profile exists
+function showNoProfileWarning() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'noProfileWarningModal';
+    modal.innerHTML = `
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 340px;">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--ios-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2 style="font-size: 18px; margin-bottom: 12px; color: var(--text-primary); text-align: center;">Skapa profil först</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">
+                Du behöver skapa en profil innan du kan välja fridagsnyckel. Vill du skapa en profil nu?
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" id="noProfileCancel" style="flex: 1;">Avbryt</button>
+                <button class="btn-primary" id="noProfileCreate" style="flex: 1;">Skapa profil</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('noProfileCreate').addEventListener('click', () => {
+        modal.remove();
+        showCreateProfileModal();
+    });
+
+    document.getElementById('noProfileCancel').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
     });
 }
 
@@ -788,7 +834,7 @@ function init() {
         }
     }
 
-    console.log('VRkalender v0.97 initialized');
+    console.log('VRkalender v0.98 initialized');
 }
 
 // Run initialization when DOM is ready
