@@ -509,6 +509,125 @@
     margin-left: auto;
 }
 
+/* Holiday List View (Helgdagar tab) */
+.list-month-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 16px 8px 16px;
+    background: var(--bg-primary);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.holiday-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    gap: 14px;
+    transition: background 0.15s ease;
+}
+
+.holiday-row:hover {
+    background: var(--bg-tertiary);
+}
+
+.holiday-row:active {
+    background: var(--hover);
+}
+
+.holiday-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    flex-shrink: 0;
+}
+
+.holiday-day-num {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--holiday);
+    line-height: 1.1;
+}
+
+.holiday-day-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--holiday);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.holiday-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.holiday-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.holiday-week {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--week-number);
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.flag-indicator {
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+.ob-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.ob-badge.storhelg {
+    background: rgba(255, 204, 0, 0.2);
+    color: #B8860B;
+}
+
+.dark .ob-badge.storhelg {
+    background: rgba(255, 204, 0, 0.15);
+    color: #FFD700;
+}
+
+.ob-badge.kvalificerad {
+    background: rgba(100, 100, 200, 0.15);
+    color: #5555AA;
+}
+
+.dark .ob-badge.kvalificerad {
+    background: rgba(140, 140, 220, 0.15);
+    color: #AAAAEE;
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
