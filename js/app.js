@@ -841,7 +841,7 @@ function init() {
         }
     }
 
-    console.log('VRkalender v0.98 initialized');
+    console.log('VRkalender v0.99 initialized');
 }
 
 // Run initialization when DOM is ready

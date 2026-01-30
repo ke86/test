@@ -299,6 +299,18 @@ export function renderListView() {
                 obBadgeHtml = `<span class="ob-badge kvalificerad">${obInfo.label}</span>`;
             }
 
+            // Check if this holiday also has FP/FPV marked
+            const dateKey = `${item.date.getFullYear()}-${item.month}-${item.day}`;
+            const hasFP = fpDays.has(dateKey);
+            const hasFPV = fpvDays.has(dateKey);
+
+            let fpBadgeHtml = '';
+            if (hasFP) {
+                fpBadgeHtml = '<span class="fp-holiday-badge fp">FP</span>';
+            } else if (hasFPV) {
+                fpBadgeHtml = '<span class="fp-holiday-badge fpv">FPV</span>';
+            }
+
             row.innerHTML = `
                 <div class="holiday-date">
                     <span class="holiday-day-num">${item.day}</span>
@@ -306,7 +318,7 @@ export function renderListView() {
                 </div>
                 <div class="holiday-info">
                     <span class="holiday-name">${flagHtml}${item.name}</span>
-                    ${obBadgeHtml}
+                    <div class="holiday-badges">${obBadgeHtml}${fpBadgeHtml}</div>
                 </div>
                 <div class="holiday-week">v${item.weekNum}</div>
             `;
