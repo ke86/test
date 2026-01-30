@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VRkalender</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/calendar.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="view-toggle">
+                <button class="nav-btn menu-in-toggle" id="hamburgerBtn" aria-label="Meny">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <button class="toggle-btn active" id="calendarToggle">Kalender</button>
+                <button class="toggle-btn" id="monthListToggle">Lista</button>
+                <button class="toggle-btn" id="listToggle">Helgdagar</button>
+                <button class="nav-btn settings-in-toggle" id="settingsBtn" aria-label="Inställningar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="legend-bar" id="legend"></div>
+            <div class="month-nav">
+                <button class="nav-btn" id="prevMonth" aria-label="Föregående månad">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <h1 class="month-title" id="monthTitle">Januari 2025</h1>
+                <button class="nav-btn" id="nextMonth" aria-label="Nästa månad">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div class="profile-header-bar" id="profileHeaderBar" style="display: none;">
+                <div class="profile-info-column">
+                    <div class="profile-name-display" id="activeProfileDisplay"></div>
+                    <div class="profile-schedule-display" id="activeScheduleDisplay" style="display: none;"></div>
+                </div>
+                <button class="profile-schedule-btn" id="loadScheduleBtn" title="Välj fridagsnyckel">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span id="loadScheduleBtnText">Välj fridagsnyckel</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="calendar-view" id="calendarView">
+            <div class="weekday-header">
+                <span>V</span>
+                <span>Mån</span>
+                <span>Tis</span>
+                <span>Ons</span>
+                <span>Tor</span>
+                <span>Fre</span>
+                <span>Lör</span>
+                <span>Sön</span>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="list-view" id="listView"></div>
+        <div class="list-view" id="monthListView"></div>
+
+        <button class="today-fab" id="todayBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Idag
+        </button>
+
+        <div class="version-badge">v0.97</div>
+    </div>
+
+    <!-- Leave Type Selection Modal -->
+    <div class="modal-overlay" id="leaveTypeOverlay">
+        <div class="holiday-info-modal" style="padding: 24px;">
+            <h2 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);" id="leaveModalTitle">Välj ledighetstyp</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;" id="leaveModalDate"></p>
+            <div id="leaveModalShiftBox" style="display: none;"></div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-align: left;" id="leaveModalSubtitle">Lägg till:</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;" id="leaveModalButtons"></div>
+        </div>
+    </div>
+
+    <!-- Confirm Remove FP/FPV Modal -->
+    <div class="modal-overlay" id="confirmRemoveOverlay">
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 320px;">
+            <h2 style="font-size: 18px; margin-bottom: 12px; color: var(--text-primary);" id="confirmRemoveTitle">Vill du ta bort FP-dagen?</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;" id="confirmRemoveDate"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" id="confirmRemoveCancel" style="flex: 1; margin-top: 0;">Avbryt</button>
+                <button class="btn-primary" id="confirmRemoveOk" style="flex: 1; background: #FF3B30;">Ta bort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel (Hamburger Menu) -->
+    <div class="side-panel-overlay" id="sidePanelOverlay">
+        <div class="side-panel">
+            <div class="side-panel-header">
+                <h2>Meny</h2>
+                <button class="modal-close" id="sidePanelClose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="side-panel-content">
+                <div class="side-panel-section">
+                    <button class="menu-settings-btn" id="menuSettingsBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Inställningar
+                    </button>
+                </div>
+
+                <div class="side-panel-section">
+                    <h3 class="collapsible active" id="workingTodayToggle">
+                        <span>Vem jobbar idag</span>
+                        <span class="collapse-icon">▼</span>
+                    </h3>
+                    <div class="collapsible-content show" id="workingTodayContent">
+                        <div class="working-today-list" id="workingTodayList"></div>
+                    </div>
+                </div>
+
+                <div class="side-panel-section">
+                    <h3 class="collapsible active" id="profilesToggle">
+                        <span>Profiler</span>
+                        <span class="collapse-icon">▼</span>
+                    </h3>
+                    <div class="collapsible-content show" id="profilesContent">
+                        <div class="profile-list" id="profileList"></div>
+                        <button class="save-schema-btn" id="addProfileBtn" style="margin-top: 10px;">
+                            📄 Lägg till profil (PDF)
+                        </button>
+                        <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="side-panel-section">
+                    <button class="save-schema-btn" id="saveSchemaBtn">
+                        💾 Spara nuvarande schema
+                    </button>
+                </div>
+
+                <div class="side-panel-section">
+                    <h3 class="collapsible" id="savedSchemasToggle">
+                        <span>Sparade scheman</span>
+                        <span class="collapse-icon">▼</span>
+                    </h3>
+                    <div class="collapsible-content" id="savedSchemasContent">
+                        <div class="saved-schema-list" id="savedSchemaList">
+                            <p class="no-schemas-msg">Inga sparade scheman</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Schema Name Modal -->
+    <div class="modal-overlay" id="saveSchemaModal">
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 320px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-primary);">Spara schema</h2>
+            <input type="text" id="schemaNameInput" placeholder="Ange ett namn..." style="width: 100%; padding: 12px 14px; font-size: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-tertiary); color: var(--text-primary); margin-bottom: 16px; box-sizing: border-box;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" id="saveSchemaCancel" style="flex: 1; margin-top: 0;">Avbryt</button>
+                <button class="btn-primary" id="saveSchemaSave" style="flex: 1;">Spara</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holiday Info Modal -->
+    <div class="modal-overlay" id="holidayInfoOverlay">
+        <div class="holiday-info-modal">
+            <div class="holiday-info-icon" id="holidayInfoIcon">🎉</div>
+            <h2 class="holiday-info-name" id="holidayInfoName">Helgdag</h2>
+            <p class="holiday-info-date" id="holidayInfoDate">1 januari 2025, onsdag</p>
+            <div class="ob-category" id="holidayObCategory">Storhelg OB</div>
+            <div class="ob-description" id="holidayObDescription"></div>
+            <button class="holiday-info-close" id="holidayInfoClose">Stäng</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Inställningar</h2>
+                <button class="modal-close" id="settingsModalClose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <div class="settings-section-header" id="scheduleSettingsToggle">
+                        <h3 class="settings-section-title">Fridagsnyckel</h3>
+                        <span class="settings-section-arrow" id="scheduleSettingsArrow">▶</span>
+                    </div>
+                    <div class="settings-section-content" id="scheduleSettingsContent" style="display: none;">
+                        <div class="schedule-selector" style="margin-top: 8px;">
+                            <label class="settings-label">Välj schema:</label>
+                            <select id="scheduleSelect" class="settings-select">
+                                <option value="">-- Inget schema valt --</option>
+                            </select>
+                        </div>
+                        <div class="schedule-selector" id="positionSelectorContainer" style="margin-top: 8px; display: none;">
+                            <label class="settings-label">Välj position (1-12):</label>
+                            <select id="positionSelect" class="settings-select"></select>
+                        </div>
+                        <p class="settings-hint" id="scheduleDescription" style="display: none; margin-top: 6px;"></p>
+                        <button class="apply-schedule-btn" id="applySelectedScheduleBtn" style="margin-top: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            Applicera schema
+                        </button>
+                        <p class="settings-hint" id="noSchedulesHint" style="display: none;"></p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-header" id="holidaySettingsToggle">
+                        <h3 class="settings-section-title">Helgdagar</h3>
+                        <span class="settings-section-arrow" id="holidaySettingsArrow">▶</span>
+                    </div>
+                    <div class="settings-section-content" id="holidaySettingsContent" style="display: none;">
+                        <label class="checkbox-item" style="margin-top: 8px;">
+                            <input type="checkbox" id="showSwedishHolidays" checked="">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">🇸🇪 Svenska helgdagar</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="showNorwegianHolidays">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">🇳🇴 Norska helgdagar</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-header" id="dataSettingsToggle">
+                        <h3 class="settings-section-title">Datahantering</h3>
+                        <span class="settings-section-arrow" id="dataSettingsArrow">▶</span>
+                    </div>
+                    <div class="settings-section-content" id="dataSettingsContent" style="display: none;">
+                        <button class="upload-schedule-btn" id="clearCalendarBtn" style="background: var(--ios-red); margin-top: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Rensa kalender
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Upload Processing Modal -->
+    <div class="modal-overlay" id="pdfMonthModal">
+        <div class="holiday-info-modal pdf-month-select-modal">
+            <h2 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);">Läser månadsschema</h2>
+            <div id="pdfManualSelectWrapper" style="display: none;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Välj vilken månad och år PDF-schemat gäller för.</p>
+                <select class="pdf-year-select" id="pdfYearSelect"></select>
+                <div class="pdf-month-grid" id="pdfMonthGrid"></div>
+            </div>
+            <div class="pdf-parsing-status" id="pdfParsingStatus" style="display: none;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+                <button class="btn-secondary" id="pdfMonthCancel" style="flex: 1;">Avbryt</button>
+                <button class="btn-primary" id="pdfMonthConfirm" style="flex: 1; display: none;">Läs in schema</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

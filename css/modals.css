@@ -1,0 +1,546 @@
+/* VRkalender - Modal Styles
+   All modals, popups, and overlays */
+
+/* Modal base */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 10;
+}
+
+.modal-header h2 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-close {
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: rgba(120, 120, 128, 0.16);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.modal-close svg {
+    width: 12px;
+    height: 12px;
+}
+
+.modal-close:hover {
+    background: rgba(120, 120, 128, 0.24);
+}
+
+.dark .modal-close {
+    background: rgba(120, 120, 128, 0.32);
+    color: var(--text-secondary);
+}
+
+.dark .modal-close:hover {
+    background: rgba(120, 120, 128, 0.48);
+}
+
+.modal-body {
+    padding: 10px;
+    background: var(--bg-tertiary);
+}
+
+/* Leave type buttons */
+.leave-type-btn {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.leave-type-btn:hover {
+    transform: scale(1.02);
+}
+
+.leave-type-btn.parental:hover {
+    background: rgba(175, 82, 222, 0.15);
+    color: #AF52DE;
+}
+
+.leave-type-btn.parental.active {
+    background: rgba(175, 82, 222, 0.2);
+    color: #AF52DE;
+    border: 2px solid #AF52DE;
+}
+
+.leave-type-btn.vacation:hover {
+    background: rgba(0, 122, 255, 0.15);
+    color: #007AFF;
+}
+
+.leave-type-btn.vacation.active {
+    background: rgba(0, 122, 255, 0.2);
+    color: #007AFF;
+    border: 2px solid #007AFF;
+}
+
+.leave-type-btn.clear {
+    background: var(--bg-tertiary);
+    justify-content: center;
+}
+
+.leave-type-btn.clear:hover {
+    background: rgba(255, 59, 48, 0.15);
+    color: #FF3B30;
+}
+
+/* Popup leave buttons (inside FP/FPV/AFD popup) */
+.popup-leave-btn {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.popup-leave-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.popup-leave-btn.active {
+    background: rgba(52, 199, 89, 0.15);
+    border-color: var(--ios-green);
+    color: var(--ios-green);
+}
+
+/* Holiday info modal */
+.holiday-info-modal {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 288px;
+    padding: 19px;
+    text-align: center;
+}
+
+.holiday-info-icon {
+    width: 51px;
+    height: 51px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 13px;
+    font-size: 22px;
+}
+
+.holiday-info-icon.storhelg {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+.holiday-info-icon.kvalificerad {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+}
+
+.holiday-info-icon.helgdag {
+    background: var(--holiday-light);
+}
+
+.holiday-info-icon.enkel {
+    background: var(--bg-tertiary);
+}
+
+.holiday-info-icon.fp {
+    background: linear-gradient(135deg, #34C759, #30B350);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.holiday-info-icon.fpv {
+    background: repeating-linear-gradient(45deg, rgba(52, 199, 89, 0.2), rgba(52, 199, 89, 0.2) 4px, rgba(52, 199, 89, 0.4) 4px, rgba(52, 199, 89, 0.4) 8px);
+    border: 3px dashed #34C759;
+    color: #34C759;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.holiday-info-icon.afd {
+    background: linear-gradient(135deg, #FFD60A, #FFCC00);
+    color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.holiday-info-icon.parental {
+    background: linear-gradient(135deg, #AF52DE, #9B45C9);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.holiday-info-icon.vacation {
+    background: linear-gradient(135deg, #007AFF, #0056CC);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.holiday-info-name {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.holiday-info-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 13px;
+}
+
+.holiday-info-close {
+    width: 100%;
+    padding: 14px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.holiday-info-close:hover {
+    background: var(--border);
+}
+
+/* Shift info box */
+.shift-info-box {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.shift-info-box .shift-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.shift-info-box .shift-service {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ios-blue);
+    margin-bottom: 8px;
+}
+
+.shift-info-box .shift-times {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.shift-info-box .shift-times span {
+    color: var(--text-muted);
+}
+
+/* Unified popup styles */
+.unified-service-box {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 10px 13px;
+    margin-bottom: 13px;
+    text-align: left;
+}
+
+.unified-service-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.unified-service-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.unified-service-icon {
+    display: flex;
+    align-items: center;
+}
+
+.unified-service-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ios-blue);
+    margin-bottom: 3px;
+}
+
+.unified-service-time {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.unified-status-box {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 13px;
+}
+
+.unified-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+}
+
+.unified-status-icon.fp {
+    background: linear-gradient(135deg, #34C759, #30B350);
+}
+
+.unified-status-icon.fpv {
+    background: repeating-linear-gradient(45deg, rgba(52, 199, 89, 0.3), rgba(52, 199, 89, 0.3) 3px, rgba(52, 199, 89, 0.6) 3px, rgba(52, 199, 89, 0.6) 6px);
+    border: 2px solid #34C759;
+    color: #34C759;
+}
+
+.unified-status-icon.afd {
+    background: linear-gradient(135deg, #FFD60A, #FFCC00);
+    color: #1a1a1a;
+}
+
+.unified-status-icon.parental {
+    background: linear-gradient(135deg, #AF52DE, #9B45C9);
+}
+
+.unified-status-icon.vacation {
+    background: linear-gradient(135deg, #007AFF, #0056CC);
+}
+
+.unified-ob-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #FFD60A, #FFCC00);
+    border-radius: 8px;
+    padding: 8px 13px;
+    margin-bottom: 13px;
+}
+
+.unified-ob-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.unified-ob-rate {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.unified-leave-section {
+    text-align: left;
+}
+
+.unified-leave-title {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.unified-leave-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.unified-leave-btn {
+    display: flex;
+    align-items: center;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.unified-leave-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.unified-leave-btn.active {
+    border-color: var(--ios-green);
+    background: rgba(52, 199, 89, 0.1);
+}
+
+.unified-leave-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.unified-leave-dot.fp {
+    background: #34C759;
+}
+
+.unified-leave-dot.fpv {
+    background: repeating-linear-gradient(45deg, rgba(52, 199, 89, 0.3), rgba(52, 199, 89, 0.3) 2px, rgba(52, 199, 89, 0.7) 2px, rgba(52, 199, 89, 0.7) 4px);
+    border: 1px solid #34C759;
+}
+
+.unified-leave-dot.parental {
+    background: #AF52DE;
+}
+
+.unified-leave-dot.vacation {
+    background: #007AFF;
+}
+
+/* OB category badges */
+.ob-category {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.ob-category.storhelg {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.ob-category.kvalificerad {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+    color: #fff;
+}
+
+.ob-category.helgdag {
+    background: var(--holiday-light);
+    color: var(--holiday);
+}
+
+.ob-category.enkel {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.ob-category.fp {
+    background: linear-gradient(135deg, #34C759, #30B350);
+    color: white;
+}
+
+.ob-category.fpv {
+    background: rgba(52, 199, 89, 0.2);
+    color: #34C759;
+    border: 2px dashed #34C759;
+}
+
+.ob-category.afd {
+    background: linear-gradient(135deg, #FFD60A, #FFCC00);
+    color: #1a1a1a;
+}
+
+.ob-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    text-align: left;
+    background: var(--bg-tertiary);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.ob-description strong {
+    color: var(--text-primary);
+}

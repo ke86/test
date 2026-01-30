@@ -1,0 +1,799 @@
+// VRkalender - Main Application Entry Point
+// ES6 Module - coordinates all other modules
+// Version 0.97
+
+// ===== IMPORTS =====
+import {
+    monthNames, monthNamesShort, dayNames,
+    currentYear, currentMonth,
+    fpDays, fpvDays, afdDays, parentalLeaveDays, vacationDays,
+    manualFpDays, manualFpvDays, daysOff, shiftData,
+    profiles, activeProfileIndex, savedSchemas, savedSchedules,
+    pdfUploadedData, baseDaysOff,
+    showSwedishHolidays, showNorwegianHolidays,
+    setCurrentMonth, setCurrentYear,
+    setFpDays, setFpvDays, setAfdDays, setParentalLeaveDays, setVacationDays,
+    setManualFpDays, setManualFpvDays, setShiftData,
+    setProfiles, setActiveProfileIndex,
+    setShowSwedishHolidays, setShowNorwegianHolidays
+} from './state.js';
+
+import {
+    getWeekNumber, escapeHtml,
+    isFpDay, isFpvDay, isAfdDay, isParentalLeaveDay, isVacationDay,
+    isManualFpDay, isManualFpvDay, getShiftForDate,
+    countForYear, isWeekend, isToday
+} from './utils.js';
+
+import {
+    getEaster, getSwedishHolidays, getNorwegianHolidays,
+    getHolidaysForYear, getObRates, getObCategory,
+    getStorhelgPeriod, isPartialStorhelgDay, isWithinStorhelgPeriod,
+    isSwedishHoliday, isNorwegianHoliday
+} from './holidays.js';
+
+import {
+    renderCalendar, goToPrevMonth, goToNextMonth, goToToday,
+    setCalendarCallbacks, addLongPressHandler,
+    handleDayClickForMove, cancelMove, getSelectedMoveDay, getLongPressTriggered
+} from './calendar.js';
+
+import {
+    renderListView, renderMonthListView, initHolidayInfoModal,
+    setListViewCallbacks
+} from './listview.js';
+
+import {
+    renderProfileList, renderWorkingTodayList, updateProfileNameDisplay,
+    switchToProfile, saveCurrentDataToProfile, loadProfileData,
+    createProfileFromPdf, clearCalendarDataSilent, getActiveProfileName,
+    setProfileCallbacks
+} from './profiles.js';
+
+import {
+    closeLeaveModal, showLeaveTypeModal, showDayTypeInfo, showDayInfoWithLeave,
+    showUnifiedDayPopup, showWeekLeaveModal, initModals, getLeaveModalJustClosed,
+    setModalCallbacks
+} from './modals.js';
+
+import { generateYearlyPdf, generateYearlyPdfWithName } from './pdf-export.js';
+import { initPdfUpload, setPdfImportCallbacks } from './pdf-import.js';
+import { saveToStorage, loadFromStorage, isStorageAvailable, exportToFile, getStorageInfo } from './storage.js';
+
+// ===== STORAGE FUNCTIONS =====
+
+// Collect current state for saving
+function getCurrentState() {
+    return {
+        profiles,
+        activeProfileIndex,
+        fpDays,
+        fpvDays,
+        afdDays,
+        manualFpDays,
+        manualFpvDays,
+        parentalLeaveDays,
+        vacationDays,
+        shiftData,
+        showSwedishHolidays,
+        showNorwegianHolidays,
+        currentYear,
+        currentMonth
+    };
+}
+
+// Save current state to localStorage
+function saveState() {
+    if (isStorageAvailable()) {
+        saveToStorage(getCurrentState());
+    }
+}
+
+// Load state from localStorage and apply to app
+function loadState() {
+    if (!isStorageAvailable()) {
+        console.warn('⚠️ localStorage ej tillgänglig');
+        return false;
+    }
+
+    const saved = loadFromStorage();
+    if (!saved) return false;
+
+    // Apply loaded data to state
+    if (saved.profiles) setProfiles(saved.profiles);
+    if (saved.activeProfileIndex !== undefined) setActiveProfileIndex(saved.activeProfileIndex);
+
+    if (saved.fpDays) setFpDays(saved.fpDays);
+    if (saved.fpvDays) setFpvDays(saved.fpvDays);
+    if (saved.afdDays) setAfdDays(saved.afdDays);
+    if (saved.manualFpDays) setManualFpDays(saved.manualFpDays);
+    if (saved.manualFpvDays) setManualFpvDays(saved.manualFpvDays);
+    if (saved.parentalLeaveDays) setParentalLeaveDays(saved.parentalLeaveDays);
+    if (saved.vacationDays) setVacationDays(saved.vacationDays);
+    if (saved.shiftData) setShiftData(saved.shiftData);
+
+    if (saved.showSwedishHolidays !== undefined) setShowSwedishHolidays(saved.showSwedishHolidays);
+    if (saved.showNorwegianHolidays !== undefined) setShowNorwegianHolidays(saved.showNorwegianHolidays);
+
+    // Update year/month if saved (optional - you might want to always start at today)
+    // if (saved.currentYear) setCurrentYear(saved.currentYear);
+    // if (saved.currentMonth !== undefined) setCurrentMonth(saved.currentMonth);
+
+    console.log('✅ State laddad från localStorage');
+    return true;
+}
+
+// Auto-save with debounce to avoid too many saves
+let saveTimeout = null;
+function scheduleAutoSave() {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveState();
+    }, 1000); // Save 1 second after last change
+}
+
+// ===== HELPER FUNCTIONS =====
+
+// Refresh all views and trigger auto-save
+function refreshAllViews() {
+    renderCalendar();
+    updateLegend();
+    const monthListToggle = document.getElementById('monthListToggle');
+    if (monthListToggle && monthListToggle.classList.contains('active')) {
+        renderMonthListView();
+    }
+    // Auto-save after any data change
+    scheduleAutoSave();
+}
+
+// Update legend - always show FP, FPV, FL, SEM counts
+function updateLegend() {
+    const legend = document.getElementById('legend');
+    if (!legend) return;
+
+    let fpCount = 0;
+    let fpvCount = 0;
+    let flCount = 0;
+    let semCount = 0;
+
+    fpDays.forEach(key => {
+        const year = parseInt(key.split('-')[0]);
+        if (year === currentYear) fpCount++;
+    });
+
+    fpvDays.forEach(key => {
+        const year = parseInt(key.split('-')[0]);
+        if (year === currentYear) fpvCount++;
+    });
+
+    parentalLeaveDays.forEach(key => {
+        const year = parseInt(key.split('-')[0]);
+        if (year === currentYear) flCount++;
+    });
+
+    vacationDays.forEach(key => {
+        const year = parseInt(key.split('-')[0]);
+        if (year === currentYear) semCount++;
+    });
+
+    legend.innerHTML = `
+        <div class="legend-item">
+            <div class="legend-dot fp"></div>
+            <span>FP ${fpCount}</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot fpv"></div>
+            <span>FPV ${fpvCount}</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot parental"></div>
+            <span>FL ${flCount}</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot vacation"></div>
+            <span>SEM ${semCount}</span>
+        </div>
+    `;
+}
+
+// Get service icon HTML based on turn number
+function getServiceIconHtml(service, size = 'small') {
+    if (!service) return '';
+
+    const sizeClass = size === 'large' ? 'service-icon-large' : 'service-icon-small';
+    const s = service.toUpperCase();
+
+    // Night shifts (starts before 05:00)
+    if (/^[0-9]*[13579][0-9]{3}$/.test(s) || s.includes('NATT')) {
+        return `<span class="${sizeClass}" title="Nattpass">🌙</span>`;
+    }
+
+    // Reserve
+    if (s.includes('RESERV') || s.includes('RES')) {
+        return `<span class="${sizeClass}" title="Reserv">📞</span>`;
+    }
+
+    // Early morning (before 06:00)
+    if (/^[0-9]*[02468][0-9]{3}$/.test(s)) {
+        const firstDigit = parseInt(s.charAt(s.length - 4));
+        if (firstDigit < 6) {
+            return `<span class="${sizeClass}" title="Tidig morgon">🌅</span>`;
+        }
+    }
+
+    return '';
+}
+
+// Get priority icon for calendar cell
+function getPriorityIcon(year, month, day, isOtherMonth, shift) {
+    if (isOtherMonth) return null;
+
+    const key = `${year}-${month}-${day}`;
+
+    // Check for storhelg
+    const storhelgCheck = isWithinStorhelgPeriod(year, month, day);
+    if (storhelgCheck) {
+        return { text: '⭐', class: 'icon-storhelg', title: 'Storhelg OB' };
+    }
+
+    // Check for partial storhelg
+    const partialCheck = isPartialStorhelgDay(year, month, day);
+    if (partialCheck) {
+        const isKval = partialCheck.category === 'kvalificerad';
+        return {
+            text: isKval ? '🌙' : '⭐',
+            class: isKval ? 'icon-kvalificerad' : 'icon-storhelg',
+            title: `${isKval ? 'Kvalificerad' : 'Storhelg'} OB ${partialCheck.time}`
+        };
+    }
+
+    // Show manual X button for manually added FP/FPV
+    if (isManualFpDay(year, month, day) || isManualFpvDay(year, month, day)) {
+        return { text: '✕', class: 'icon-remove', title: 'Klicka för att ta bort' };
+    }
+
+    // Show service icon if shift exists
+    if (shift && shift.service) {
+        const icon = getServiceIconHtml(shift.service, 'small');
+        if (icon) {
+            // Extract emoji from icon HTML
+            const match = icon.match(/>(.+?)</);
+            if (match) {
+                return { text: match[1], class: 'icon-service', title: shift.service };
+            }
+        }
+    }
+
+    return null;
+}
+
+// ===== SET UP CALLBACKS =====
+
+// Calendar callbacks
+setCalendarCallbacks({
+    showUnifiedDayPopup: showUnifiedDayPopup,
+    handleDayClickForMove: handleDayClickForMove,
+    showWeekLeaveModal: showWeekLeaveModal,
+    getPriorityIcon: getPriorityIcon
+});
+
+// List view callbacks
+setListViewCallbacks({
+    showLeaveTypeModal: showLeaveTypeModal,
+    showDayInfoWithLeave: showDayInfoWithLeave,
+    showDayTypeInfo: showDayTypeInfo,
+    handleDayClickForMove: handleDayClickForMove,
+    getServiceIconHtml: getServiceIconHtml,
+    getSelectedMoveDay: getSelectedMoveDay,
+    getLeaveModalJustClosed: getLeaveModalJustClosed
+});
+
+// Profile callbacks
+setProfileCallbacks({
+    refreshAllViews: refreshAllViews,
+    generateYearlyPdfWithName: generateYearlyPdfWithName,
+    onDataChanged: scheduleAutoSave
+});
+
+// Modal callbacks
+setModalCallbacks({
+    refreshAllViews: refreshAllViews,
+    renderCalendar: renderCalendar,
+    renderListView: renderListView,
+    onDataChanged: scheduleAutoSave
+});
+
+// PDF import callbacks
+setPdfImportCallbacks({
+    refreshAllViews: refreshAllViews
+});
+
+// ===== DARK MODE =====
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    if (event.matches) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+});
+
+// ===== NAVIGATION =====
+document.getElementById('prevMonth').addEventListener('click', () => {
+    goToPrevMonth();
+    refreshAllViews();
+});
+
+document.getElementById('nextMonth').addEventListener('click', () => {
+    goToNextMonth();
+    refreshAllViews();
+});
+
+document.getElementById('todayBtn').addEventListener('click', () => {
+    goToToday();
+    refreshAllViews();
+});
+
+// ===== VIEW TOGGLE =====
+const calendarToggle = document.getElementById('calendarToggle');
+const monthListToggle = document.getElementById('monthListToggle');
+const listToggle = document.getElementById('listToggle');
+const calendarView = document.getElementById('calendarView');
+const monthListView = document.getElementById('monthListView');
+const listView = document.getElementById('listView');
+
+function showView(view) {
+    calendarView.style.display = view === 'calendar' ? 'block' : 'none';
+    monthListView.style.display = view === 'monthList' ? 'block' : 'none';
+    listView.style.display = view === 'list' ? 'block' : 'none';
+
+    calendarToggle.classList.toggle('active', view === 'calendar');
+    monthListToggle.classList.toggle('active', view === 'monthList');
+    listToggle.classList.toggle('active', view === 'list');
+
+    if (view === 'monthList') renderMonthListView();
+    if (view === 'list') renderListView();
+}
+
+calendarToggle.addEventListener('click', () => showView('calendar'));
+monthListToggle.addEventListener('click', () => showView('monthList'));
+listToggle.addEventListener('click', () => showView('list'));
+
+// ===== HAMBURGER MENU =====
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const sidePanelOverlay = document.getElementById('sidePanelOverlay');
+const sidePanelClose = document.getElementById('sidePanelClose');
+const menuSettingsBtn = document.getElementById('menuSettingsBtn');
+
+hamburgerBtn.addEventListener('click', () => {
+    sidePanelOverlay.classList.add('active');
+    renderWorkingTodayList();
+});
+
+sidePanelClose.addEventListener('click', () => {
+    sidePanelOverlay.classList.remove('active');
+});
+
+sidePanelOverlay.addEventListener('click', (e) => {
+    if (e.target === sidePanelOverlay) {
+        sidePanelOverlay.classList.remove('active');
+    }
+});
+
+menuSettingsBtn.addEventListener('click', () => {
+    sidePanelOverlay.classList.remove('active');
+    document.getElementById('settingsModalOverlay').classList.add('active');
+});
+
+// Collapsible sections in hamburger menu
+function setupCollapsible(toggleId, contentId) {
+    const toggle = document.getElementById(toggleId);
+    const content = document.getElementById(contentId);
+    if (!toggle || !content) return;
+
+    toggle.addEventListener('click', () => {
+        toggle.classList.toggle('active');
+        content.classList.toggle('show');
+    });
+}
+
+setupCollapsible('workingTodayToggle', 'workingTodayContent');
+setupCollapsible('profilesToggle', 'profilesContent');
+setupCollapsible('savedSchemasToggle', 'savedSchemasContent');
+
+// ===== SAVED SCHEMAS =====
+const saveSchemaBtn = document.getElementById('saveSchemaBtn');
+const saveSchemaModal = document.getElementById('saveSchemaModal');
+const schemaNameInput = document.getElementById('schemaNameInput');
+const saveSchemaCancel = document.getElementById('saveSchemaCancel');
+const saveSchemaSave = document.getElementById('saveSchemaSave');
+const savedSchemaList = document.getElementById('savedSchemaList');
+
+function renderSavedSchemas() {
+    if (savedSchemas.length === 0) {
+        savedSchemaList.innerHTML = '<p class="no-schemas-msg">Inga sparade scheman</p>';
+        return;
+    }
+
+    let html = '';
+    savedSchemas.forEach((schema, index) => {
+        const date = new Date(schema.timestamp);
+        const dateStr = `${date.getDate()}/${date.getMonth() + 1} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        html += `
+            <div class="saved-schema-item" data-index="${index}">
+                <div class="schema-name">
+                    ${escapeHtml(schema.name)}
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${dateStr}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="schema-download" data-index="${index}" title="Ladda ner PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <button class="schema-delete" data-index="${index}" title="Ta bort">×</button>
+                </div>
+            </div>
+        `;
+    });
+    savedSchemaList.innerHTML = html;
+
+    // Add event handlers
+    savedSchemaList.querySelectorAll('.saved-schema-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.schema-download') || e.target.closest('.schema-delete')) return;
+            const index = parseInt(item.dataset.index);
+            loadSchema(index);
+        });
+    });
+
+    savedSchemaList.querySelectorAll('.schema-download').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.dataset.index);
+            downloadSchemaPdf(index);
+        });
+    });
+
+    savedSchemaList.querySelectorAll('.schema-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.dataset.index);
+            deleteSchema(index);
+        });
+    });
+}
+
+function loadSchema(index) {
+    if (index < 0 || index >= savedSchemas.length) return;
+    const schema = savedSchemas[index];
+
+    setFpDays(new Set(schema.fpDays || []));
+    setFpvDays(new Set(schema.fpvDays || []));
+    setAfdDays(new Set(schema.afdDays || []));
+    setParentalLeaveDays(new Set(schema.parentalLeaveDays || []));
+    setVacationDays(new Set(schema.vacationDays || []));
+    setManualFpDays(new Set(schema.manualFpDays || []));
+    setManualFpvDays(new Set(schema.manualFpvDays || []));
+    setShiftData(new Map(schema.shiftData || []));
+
+    sidePanelOverlay.classList.remove('active');
+    refreshAllViews();
+}
+
+function deleteSchema(index) {
+    if (index < 0 || index >= savedSchemas.length) return;
+    savedSchemas.splice(index, 1);
+    renderSavedSchemas();
+}
+
+function downloadSchemaPdf(index) {
+    if (index < 0 || index >= savedSchemas.length) return;
+    const schema = savedSchemas[index];
+
+    // Temporarily load schema data
+    const originalFpDays = new Set(fpDays);
+    const originalFpvDays = new Set(fpvDays);
+    const originalAfdDays = new Set(afdDays);
+    const originalDaysOff = new Set(daysOff);
+    const originalParentalLeaveDays = new Set(parentalLeaveDays);
+    const originalVacationDays = new Set(vacationDays);
+    const originalManualFpDays = new Set(manualFpDays);
+    const originalManualFpvDays = new Set(manualFpvDays);
+    const originalShiftData = new Map(shiftData);
+
+    setFpDays(new Set(schema.fpDays || []));
+    setFpvDays(new Set(schema.fpvDays || []));
+    setAfdDays(new Set(schema.afdDays || []));
+    setParentalLeaveDays(new Set(schema.parentalLeaveDays || []));
+    setVacationDays(new Set(schema.vacationDays || []));
+    setManualFpDays(new Set(schema.manualFpDays || []));
+    setManualFpvDays(new Set(schema.manualFpvDays || []));
+    setShiftData(new Map(schema.shiftData || []));
+
+    generateYearlyPdfWithName(schema.name);
+
+    // Restore original data
+    setFpDays(originalFpDays);
+    setFpvDays(originalFpvDays);
+    setAfdDays(originalAfdDays);
+    setParentalLeaveDays(originalParentalLeaveDays);
+    setVacationDays(originalVacationDays);
+    setManualFpDays(originalManualFpDays);
+    setManualFpvDays(originalManualFpvDays);
+    setShiftData(originalShiftData);
+}
+
+saveSchemaBtn.addEventListener('click', () => {
+    schemaNameInput.value = '';
+    saveSchemaModal.classList.add('active');
+    setTimeout(() => schemaNameInput.focus(), 100);
+});
+
+saveSchemaCancel.addEventListener('click', () => {
+    saveSchemaModal.classList.remove('active');
+});
+
+saveSchemaSave.addEventListener('click', () => {
+    const name = schemaNameInput.value.trim();
+    if (!name) return;
+
+    savedSchemas.push({
+        name: name,
+        timestamp: Date.now(),
+        fpDays: Array.from(fpDays),
+        fpvDays: Array.from(fpvDays),
+        afdDays: Array.from(afdDays),
+        parentalLeaveDays: Array.from(parentalLeaveDays),
+        vacationDays: Array.from(vacationDays),
+        manualFpDays: Array.from(manualFpDays),
+        manualFpvDays: Array.from(manualFpvDays),
+        shiftData: Array.from(shiftData.entries())
+    });
+
+    renderSavedSchemas();
+    saveSchemaModal.classList.remove('active');
+});
+
+saveSchemaModal.addEventListener('click', (e) => {
+    if (e.target === saveSchemaModal) {
+        saveSchemaModal.classList.remove('active');
+    }
+});
+
+// ===== SCHEDULE SELECTOR =====
+const scheduleSelect = document.getElementById('scheduleSelect');
+const positionSelect = document.getElementById('positionSelect');
+const positionSelectorContainer = document.getElementById('positionSelectorContainer');
+const scheduleDescription = document.getElementById('scheduleDescription');
+const applySelectedScheduleBtn = document.getElementById('applySelectedScheduleBtn');
+const noSchedulesHint = document.getElementById('noSchedulesHint');
+
+function updateScheduleSelect() {
+    const scheduleNames = Object.keys(savedSchedules).sort();
+
+    scheduleSelect.innerHTML = '<option value="">-- Inget schema valt --</option>';
+
+    scheduleNames.forEach(name => {
+        const schedule = savedSchedules[name];
+        const option = document.createElement('option');
+        option.value = name;
+        const positionCount = schedule.size || Object.keys(schedule.positions || {}).length;
+        option.textContent = schedule.description
+            ? `${name} - ${schedule.description} (${positionCount} platser)`
+            : `${name} (${positionCount} platser)`;
+        scheduleSelect.appendChild(option);
+    });
+
+    if (scheduleNames.length > 0) {
+        noSchedulesHint.style.display = 'none';
+        applySelectedScheduleBtn.disabled = true;
+    } else {
+        noSchedulesHint.style.display = 'block';
+        applySelectedScheduleBtn.disabled = true;
+        positionSelectorContainer.style.display = 'none';
+        scheduleDescription.style.display = 'none';
+    }
+}
+
+scheduleSelect.addEventListener('change', () => {
+    const selectedSchedule = scheduleSelect.value;
+
+    if (!selectedSchedule || !savedSchedules[selectedSchedule]) {
+        positionSelectorContainer.style.display = 'none';
+        scheduleDescription.style.display = 'none';
+        applySelectedScheduleBtn.disabled = true;
+        return;
+    }
+
+    const schedule = savedSchedules[selectedSchedule];
+    const size = schedule.size || 12;
+
+    positionSelect.innerHTML = '';
+    for (let i = 1; i <= size; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Position ${i}`;
+        positionSelect.appendChild(option);
+    }
+
+    positionSelectorContainer.style.display = 'block';
+
+    if (schedule.description) {
+        scheduleDescription.textContent = `${schedule.description} - ${schedule.cycle || size} veckors cykel`;
+        scheduleDescription.style.display = 'block';
+    } else {
+        scheduleDescription.style.display = 'none';
+    }
+
+    applySelectedScheduleBtn.disabled = false;
+});
+
+applySelectedScheduleBtn.addEventListener('click', () => {
+    const selectedScheduleName = scheduleSelect.value;
+    const selectedPosition = parseInt(positionSelect.value) || 1;
+
+    if (!selectedScheduleName || !savedSchedules[selectedScheduleName]) return;
+
+    const schedule = savedSchedules[selectedScheduleName];
+    const cycle = schedule.cycle || schedule.size || 12;
+    const positions = schedule.positions;
+
+    fpDays.clear();
+    fpvDays.clear();
+    afdDays.clear();
+    daysOff.clear();
+    shiftData.clear();
+    baseDaysOff.length = 0;
+
+    const yearNow = new Date().getFullYear();
+
+    // Find week 9 Monday
+    const jan1 = new Date(yearNow, 0, 1);
+    const jan1Day = jan1.getDay();
+    let week1Monday;
+    if (jan1Day <= 4) {
+        week1Monday = new Date(yearNow, 0, 1 - (jan1Day === 0 ? 6 : jan1Day - 1));
+    } else {
+        week1Monday = new Date(yearNow, 0, 1 + (8 - jan1Day));
+    }
+    const week9Monday = new Date(week1Monday);
+    week9Monday.setDate(week1Monday.getDate() + (8 * 7));
+
+    const dayNameToIndex = {
+        mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0
+    };
+
+    const endDate = new Date(yearNow + 2, 0, 31);
+    const endTime = endDate.getTime();
+
+    let weekInCycle = selectedPosition;
+    let isFirstWeek = true;
+
+    for (let weekOffset = 0; weekOffset < 110; weekOffset++) {
+        const weekStartDate = new Date(week9Monday);
+        weekStartDate.setDate(week9Monday.getDate() + (weekOffset * 7));
+
+        if (weekStartDate.getTime() > endTime) break;
+
+        const positionPattern = positions[weekInCycle] || {};
+
+        Object.entries(positionPattern).forEach(([dayName, dayType]) => {
+            if (!dayType) return;
+
+            const dayIndex = dayNameToIndex[dayName];
+            if (dayIndex === undefined) return;
+
+            if (isFirstWeek && dayIndex !== 0) return;
+
+            const targetDate = new Date(weekStartDate);
+            const currentDow = targetDate.getDay();
+            let daysToAdd = dayIndex - currentDow;
+            if (daysToAdd < 0) daysToAdd += 7;
+            targetDate.setDate(targetDate.getDate() + daysToAdd);
+
+            const key = `${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
+            const month = targetDate.getMonth();
+
+            if (dayType === 'FP') {
+                fpDays.add(key);
+            } else if (dayType === 'FPV') {
+                if (month < 5 || month > 7) {
+                    fpvDays.add(key);
+                }
+            }
+        });
+
+        isFirstWeek = false;
+        weekInCycle = weekInCycle >= cycle ? 1 : weekInCycle + 1;
+    }
+
+    // Re-apply PDF-uploaded data
+    pdfUploadedData.fpDays.forEach(key => fpDays.add(key));
+    pdfUploadedData.fpvDays.forEach(key => fpvDays.add(key));
+    pdfUploadedData.afdDays.forEach(key => afdDays.add(key));
+    pdfUploadedData.parentalLeaveDays.forEach(key => parentalLeaveDays.add(key));
+    pdfUploadedData.vacationDays.forEach(key => vacationDays.add(key));
+    pdfUploadedData.shiftData.forEach((val, key) => shiftData.set(key, val));
+
+    // Save schedule to active profile
+    if (activeProfileIndex >= 0 && activeProfileIndex < profiles.length) {
+        profiles[activeProfileIndex].schedule = {
+            name: selectedScheduleName,
+            position: selectedPosition
+        };
+        saveCurrentDataToProfile(activeProfileIndex);
+    }
+
+    refreshAllViews();
+    renderListView();
+    updateProfileNameDisplay();
+    document.getElementById('settingsModalOverlay').classList.remove('active');
+});
+
+// Load schedule button in header
+const loadScheduleBtn = document.getElementById('loadScheduleBtn');
+if (loadScheduleBtn) {
+    loadScheduleBtn.addEventListener('click', () => {
+        document.getElementById('settingsModalOverlay').classList.add('active');
+
+        const scheduleContent = document.getElementById('scheduleSettingsContent');
+        const scheduleArrow = document.getElementById('scheduleSettingsArrow');
+        if (scheduleContent && scheduleArrow) {
+            scheduleContent.style.display = 'block';
+            scheduleArrow.classList.add('expanded');
+        }
+    });
+}
+
+// Add profile button
+document.getElementById('addProfileBtn').addEventListener('click', () => {
+    document.getElementById('pdfFileInput').click();
+});
+
+// ===== INITIALIZATION =====
+function init() {
+    // Load saved data from localStorage first
+    const hasStoredData = loadState();
+    if (hasStoredData) {
+        console.log('📂 Laddade sparad data');
+    }
+
+    // Initialize modals
+    initModals();
+    initHolidayInfoModal();
+    initPdfUpload();
+
+    // Initialize schedule select
+    updateScheduleSelect();
+
+    // Render initial views
+    renderCalendar();
+    renderListView();
+    renderMonthListView();
+    renderProfileList();
+    renderSavedSchemas();
+    updateLegend();
+    updateProfileNameDisplay();
+
+    // Show storage info in console
+    if (isStorageAvailable()) {
+        const info = getStorageInfo();
+        if (info) {
+            console.log(`💾 Lagrad data: ${info.sizeKB} KB, ${info.profileCount} profiler`);
+        }
+    }
+
+    console.log('VRkalender v0.97 initialized');
+}
+
+// Run initialization when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

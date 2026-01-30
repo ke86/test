@@ -1,0 +1,669 @@
+/* VRkalender - Calendar Styles
+   Calendar grid, day cells, badges, list views */
+
+/* Calendar View */
+.calendar-view {
+    padding: 16px;
+}
+
+.weekday-header {
+    display: grid;
+    grid-template-columns: 36px repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+.weekday-header span {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.weekday-header span:first-child {
+    color: var(--week-number);
+    font-size: 10px;
+}
+
+.weekday-header span:last-child {
+    color: var(--sunday);
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.week-row {
+    display: grid;
+    grid-template-columns: 36px repeat(7, 1fr);
+    gap: 4px;
+    align-items: center;
+}
+
+.week-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--week-number);
+    text-align: center;
+    background: var(--bg-tertiary);
+    padding: 8px 0;
+    border-radius: 8px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.week-number.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.week-number.clickable:hover {
+    background: var(--ios-blue);
+    color: white;
+    border-radius: 6px;
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    min-height: 52px;
+    padding: 3px;
+    gap: 0;
+}
+
+/* Day number - top left */
+.day-cell .day-num {
+    grid-row: 1;
+    grid-column: 1;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: left;
+    padding-left: 2px;
+    z-index: 2;
+    position: relative;
+}
+
+/* Priority icon - top right */
+.day-cell .day-icon {
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    z-index: 2;
+    padding-right: 1px;
+}
+
+/* Time display - bottom spanning both columns */
+.day-cell .day-time {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.9);
+    border-radius: 3px;
+    padding: 1px 2px;
+    line-height: 1.1;
+    z-index: 2;
+}
+
+.day-cell .day-time .time-start,
+.day-cell .day-time .time-end {
+    display: block;
+}
+
+.dark .day-cell .day-time {
+    background: rgba(0,0,0,0.7);
+}
+
+.day-cell .day-time:empty {
+    display: none;
+}
+
+/* Priority icon styles */
+.day-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0 3px;
+}
+
+.day-icon-badge.fp { background: #34C759; color: white; }
+.day-icon-badge.fpv { background: rgba(52,199,89,0.25); color: #34C759; border: 1px dashed #34C759; }
+.day-icon-badge.afd { background: #FFCC00; color: #1a1a1a; }
+.day-icon-badge.fl { background: #AF52DE; color: white; }
+.day-icon-badge.sem { background: #007AFF; color: white; }
+.day-icon-badge.holiday { background: var(--ios-red); color: white; font-size: 10px; }
+.day-icon-badge.flag { background: transparent; font-size: 12px; padding: 0; min-width: auto; }
+
+/* Split shift icons */
+.day-icon-badge.split-a,
+.day-icon-badge.split-b {
+    background: white;
+    color: #333;
+    border: 1px solid #999;
+    font-weight: 700;
+    position: relative;
+    overflow: visible;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-icon-badge.split-a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: -1px;
+    right: -1px;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, white 0px, white 2px, transparent 2px, transparent 4px);
+    border-top: 1px dashed #999;
+}
+
+.day-icon-badge.split-b::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -1px;
+    right: -1px;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, white 0px, white 2px, transparent 2px, transparent 4px);
+    border-bottom: 1px dashed #999;
+}
+
+.dark .day-icon-badge.split-a,
+.dark .day-icon-badge.split-b {
+    background: #e0e0e0;
+    color: #1a1a1a;
+    border-color: #666;
+}
+
+.dark .day-icon-badge.split-a::after,
+.dark .day-icon-badge.split-b::before {
+    background: repeating-linear-gradient(90deg, #e0e0e0 0px, #e0e0e0 2px, transparent 2px, transparent 4px);
+    border-color: #666;
+}
+
+/* Day cell states */
+.day-cell:hover {
+    background: var(--bg-tertiary);
+}
+
+.day-cell.other-month {
+    color: var(--text-muted);
+    opacity: 0.4;
+}
+
+.day-cell.today {
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+}
+
+.day-cell.today:hover {
+    background: var(--accent);
+    opacity: 0.9;
+}
+
+.day-cell.sunday {
+    color: var(--sunday);
+}
+
+.day-cell.holiday {
+    background: var(--holiday-light);
+    color: var(--holiday);
+    font-weight: 600;
+}
+
+.day-cell.holiday.today {
+    background: var(--holiday);
+    color: white;
+}
+
+.day-cell.day-off {
+    background: var(--dayoff-light);
+    color: var(--dayoff);
+    font-weight: 700;
+    border: 2px solid var(--dayoff);
+}
+
+.day-cell.day-off.today {
+    background: var(--dayoff);
+    color: white;
+}
+
+/* FP - Fridag på helg (grön ram) */
+.day-cell.day-fp {
+    background: rgba(52, 199, 89, 0.1);
+    border: 2px solid #34C759;
+}
+
+.day-cell.day-fp .day-num {
+    color: #34C759;
+}
+
+.day-cell.day-fp.holiday {
+    background: var(--holiday-light);
+    border: 2px solid #34C759;
+}
+
+/* FPV - Fridag på vardag (grön streckad ram) */
+.day-cell.day-fpv {
+    background: rgba(52, 199, 89, 0.05);
+    border: 2px dashed #34C759;
+}
+
+.day-cell.day-fpv .day-num {
+    color: #34C759;
+}
+
+.day-cell.day-fpv.holiday {
+    background: var(--holiday-light);
+    border: 2px dashed #34C759;
+}
+
+/* AFD - Arbetsförlagd dag (gul streckad ram) */
+.day-cell.day-afd {
+    background: rgba(255, 204, 0, 0.1);
+    border: 2px dashed #FFCC00;
+}
+
+.day-cell.day-afd .day-num {
+    color: #b39400;
+}
+
+.dark .day-cell.day-afd .day-num {
+    color: #FFCC00;
+}
+
+/* Föräldraledighet (lila streckad ram) */
+.day-cell.day-parental {
+    background: rgba(175, 82, 222, 0.1);
+    border: 2px dashed #AF52DE;
+}
+
+.day-cell.day-parental .day-num {
+    color: #AF52DE;
+}
+
+/* Semester (blå streckad ram) */
+.day-cell.day-vacation {
+    background: rgba(0, 122, 255, 0.1);
+    border: 2px dashed #007AFF;
+}
+
+.day-cell.day-vacation .day-num {
+    color: #007AFF;
+}
+
+/* Faded styling for days from other months */
+.day-cell.day-type-faded {
+    opacity: 0.45;
+}
+
+.day-cell.day-type-faded.day-fp {
+    border-color: rgba(52, 199, 89, 0.5);
+    color: rgba(52, 199, 89, 0.6);
+}
+
+.day-cell.day-type-faded.day-fpv {
+    border-color: rgba(52, 199, 89, 0.5);
+    color: rgba(52, 199, 89, 0.6);
+}
+
+.day-cell.day-type-faded.day-afd {
+    border-color: rgba(255, 204, 0, 0.5);
+    color: rgba(255, 204, 0, 0.6);
+}
+
+.day-cell.day-type-faded.day-parental {
+    border-color: rgba(175, 82, 222, 0.5);
+    color: rgba(175, 82, 222, 0.6);
+}
+
+.day-cell.day-type-faded.day-vacation {
+    border-color: rgba(0, 122, 255, 0.5);
+    color: rgba(0, 122, 255, 0.6);
+}
+
+/* Move selection state - blinking red border */
+@keyframes blink-red-border {
+    0%, 100% { box-shadow: 0 0 0 6px #FF3B30; }
+    50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+.day-cell.move-selected {
+    animation: blink-red-border 0.8s ease-in-out infinite;
+    z-index: 10;
+}
+
+/* List View */
+.list-view {
+    padding: 16px;
+    display: none;
+}
+
+.list-view.active {
+    display: block;
+}
+
+.calendar-view.hidden {
+    display: none;
+}
+
+.list-section {
+    margin-bottom: 24px;
+}
+
+.list-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.holiday-card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.holiday-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+}
+
+.holiday-card.dayoff-card {
+    border-color: var(--dayoff);
+    border-width: 2px;
+}
+
+.holiday-date-box {
+    width: 56px;
+    height: 56px;
+    background: var(--holiday-light);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.holiday-card.dayoff-card .holiday-date-box {
+    background: var(--dayoff-light);
+}
+
+.holiday-date-day {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--holiday);
+    line-height: 1;
+}
+
+.holiday-card.dayoff-card .holiday-date-day {
+    color: var(--dayoff);
+}
+
+.holiday-date-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--holiday);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.holiday-card.dayoff-card .holiday-date-month {
+    color: var(--dayoff);
+}
+
+.holiday-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.holiday-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fp-badge, .fpv-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.fp-badge {
+    background: linear-gradient(135deg, #34C759, #30B350);
+    color: white;
+}
+
+.fpv-badge {
+    background: repeating-linear-gradient(45deg, #34C759, #34C759 2px, #2DB14E 2px, #2DB14E 4px);
+    color: white;
+}
+
+.week-badge {
+    background: var(--bg-tertiary);
+    color: var(--week-number);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+
+.empty-state p {
+    font-size: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .calendar-grid {
+        gap: 2px;
+    }
+
+    .week-row {
+        grid-template-columns: 28px repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .weekday-header {
+        grid-template-columns: 28px repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .week-num {
+        font-size: 10px;
+        min-width: 28px;
+    }
+
+    .day-cell {
+        min-height: 44px;
+        padding: 2px;
+        border-radius: 8px;
+    }
+
+    .day-cell .day-num {
+        font-size: 14px;
+    }
+
+    .day-cell .day-icon {
+        font-size: 8px;
+    }
+
+    .day-icon-badge {
+        font-size: 7px;
+        padding: 1px 2px;
+        min-width: 16px;
+    }
+
+    .day-cell .day-time {
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 380px) {
+    .month-title {
+        font-size: 24px;
+    }
+
+    .week-row {
+        grid-template-columns: 24px repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .weekday-header {
+        grid-template-columns: 24px repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .week-num {
+        font-size: 9px;
+        min-width: 24px;
+    }
+
+    .day-cell {
+        font-size: 12px;
+        min-height: 40px;
+        padding: 1px;
+        border-radius: 6px;
+    }
+
+    .day-cell .day-num {
+        font-size: 12px;
+    }
+
+    .day-cell .day-icon {
+        font-size: 7px;
+    }
+
+    .day-icon-badge {
+        font-size: 6px;
+        padding: 1px 2px;
+        min-width: 14px;
+    }
+
+    .day-cell .day-time {
+        font-size: 7px;
+        padding: 0 1px;
+    }
+
+    .week-number {
+        font-size: 10px;
+    }
+
+    .legend {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 340px) {
+    .week-row {
+        grid-template-columns: 20px repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .weekday-header {
+        grid-template-columns: 20px repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .week-num {
+        font-size: 8px;
+        min-width: 20px;
+    }
+
+    .day-cell {
+        min-height: 36px;
+        padding: 1px;
+    }
+
+    .day-cell .day-num {
+        font-size: 11px;
+    }
+
+    .day-cell .day-icon {
+        font-size: 6px;
+    }
+
+    .day-icon-badge {
+        font-size: 5px;
+        padding: 0 1px;
+        min-width: 12px;
+    }
+
+    .day-cell .day-time {
+        font-size: 6px;
+    }
+}
