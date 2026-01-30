@@ -8,7 +8,7 @@ import {
     pdfUploadedData, savedSchedules,
     setProfiles, setActiveProfileIndex,
     setFpDays, setFpvDays, setAfdDays, setParentalLeaveDays, setVacationDays,
-    setDaysOff, setShiftData, setManualFpDays, setManualFpvDays
+    setShiftData, setManualFpDays, setManualFpvDays
 } from './state.js';
 
 // Callbacks
