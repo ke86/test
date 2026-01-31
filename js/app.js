@@ -836,10 +836,14 @@ function showNoProfileWarning() {
     });
 }
 
-// Add profile button - show choice modal
-document.getElementById('addProfileBtn').addEventListener('click', () => {
-    showCreateProfileModal();
-});
+// Add profile button in hamburger menu - show choice modal
+const menuAddProfileBtn = document.getElementById('menuAddProfileBtn');
+if (menuAddProfileBtn) {
+    menuAddProfileBtn.addEventListener('click', () => {
+        document.getElementById('sidePanelOverlay').classList.remove('active');
+        showCreateProfileModal();
+    });
+}
 
 // ===== INITIALIZATION =====
 function init() {
@@ -874,7 +878,7 @@ function init() {
         }
     }
 
-    console.log('VRkalender v1.01 initialized');
+    console.log('VRkalender v1.03 initialized');
 }
 
 // Run initialization when DOM is ready
