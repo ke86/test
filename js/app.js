@@ -504,19 +504,115 @@ function updateActiveProfileIndicator() {
 
     const profileName = getActiveProfileName();
     if (profileName) {
-        indicator.className = 'active-profile-indicator';
+        indicator.className = 'active-profile-indicator clickable';
         indicator.innerHTML = `
             <span class="profile-icon">👤</span>
             <span class="profile-label">Aktiv profil:</span>
             <span class="profile-name">${profileName}</span>
+            <span class="profile-arrow">›</span>
         `;
     } else {
-        indicator.className = 'active-profile-indicator no-profile';
+        indicator.className = 'active-profile-indicator no-profile clickable';
         indicator.innerHTML = `
             <span class="profile-icon">⚠️</span>
             <span class="profile-name">Ingen profil vald</span>
+            <span class="profile-arrow">›</span>
         `;
     }
+
+    // Make indicator clickable to show profile selector
+    indicator.onclick = () => {
+        showProfileSelectorModal();
+    };
+}
+
+// Show profile selector modal
+function showProfileSelectorModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'profileSelectorModal';
+
+    const profileName = getActiveProfileName();
+    const hasProfiles = profiles.length > 0;
+
+    let profileListHtml = '';
+    if (hasProfiles) {
+        profiles.forEach((profile, index) => {
+            const isActive = index === activeProfileIndex;
+            const scheduleInfo = profile.scheduleKey ? profile.scheduleKey : 'Ingen nyckel';
+            profileListHtml += `
+                <div class="profile-selector-item ${isActive ? 'active' : ''}" data-index="${index}">
+                    <div class="profile-selector-check ${isActive ? '' : 'hidden'}">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="profile-selector-info">
+                        <div class="profile-selector-name">${escapeHtml(profile.name)}</div>
+                        <div class="profile-selector-schedule">${scheduleInfo}</div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        profileListHtml = '<p class="profile-selector-empty">Inga profiler skapade ännu</p>';
+    }
+
+    modal.innerHTML = `
+        <div class="holiday-info-modal" style="padding: 0; max-width: 340px; overflow: hidden;">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border);">
+                <h2 style="font-size: 18px; margin: 0; color: var(--text-primary);">Välj profil</h2>
+            </div>
+            <div class="profile-selector-list" style="max-height: 300px; overflow-y: auto;">
+                ${profileListHtml}
+            </div>
+            <div style="padding: 12px 16px; border-top: 1px solid var(--border);">
+                <button class="menu-settings-btn" id="profileSelectorCreate" style="background: var(--accent-light); color: var(--ios-blue);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Skapa ny profil
+                </button>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <button class="btn-secondary" id="profileSelectorClose" style="margin-top: 0;">Stäng</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Handle profile selection
+    modal.querySelectorAll('.profile-selector-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const index = parseInt(item.dataset.index);
+            switchToProfile(index);
+            modal.remove();
+            updateActiveProfileIndicator();
+            updateProfileNameDisplay();
+            renderCalendar();
+        });
+    });
+
+    // Handle create new profile
+    document.getElementById('profileSelectorCreate').addEventListener('click', () => {
+        modal.remove();
+        document.getElementById('settingsModalOverlay').classList.remove('active');
+        showCreateProfileModal();
+    });
+
+    // Handle close
+    document.getElementById('profileSelectorClose').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
 }
 
 // Settings button in header (opens settings modal)

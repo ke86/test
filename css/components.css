@@ -79,6 +79,90 @@
     color: var(--ios-orange);
 }
 
+.active-profile-indicator.clickable {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.active-profile-indicator.clickable:hover {
+    background: var(--border);
+}
+
+.active-profile-indicator.no-profile.clickable:hover {
+    background: rgba(255, 149, 0, 0.25);
+}
+
+.active-profile-indicator .profile-arrow {
+    margin-left: auto;
+    font-size: 18px;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* Profile selector modal styles */
+.profile-selector-list {
+    padding: 8px 0;
+}
+
+.profile-selector-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.profile-selector-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.profile-selector-item.active {
+    background: var(--accent-light);
+}
+
+.profile-selector-check {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    color: var(--ios-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-selector-check.hidden {
+    visibility: hidden;
+}
+
+.profile-selector-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-selector-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-selector-schedule {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.profile-selector-empty {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px 16px;
+    font-style: italic;
+}
+
 .settings-section-title {
     font-size: 13px;
     font-weight: 400;
