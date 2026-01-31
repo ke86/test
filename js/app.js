@@ -384,8 +384,31 @@ sidePanelOverlay.addEventListener('click', (e) => {
 
 menuSettingsBtn.addEventListener('click', () => {
     sidePanelOverlay.classList.remove('active');
+    updateActiveProfileIndicator();
     document.getElementById('settingsModalOverlay').classList.add('active');
 });
+
+// Update active profile indicator in settings
+function updateActiveProfileIndicator() {
+    const indicator = document.getElementById('activeProfileIndicator');
+    if (!indicator) return;
+
+    const profileName = getActiveProfileName();
+    if (profileName) {
+        indicator.className = 'active-profile-indicator';
+        indicator.innerHTML = `
+            <span class="profile-icon">👤</span>
+            <span class="profile-label">Aktiv profil:</span>
+            <span class="profile-name">${profileName}</span>
+        `;
+    } else {
+        indicator.className = 'active-profile-indicator no-profile';
+        indicator.innerHTML = `
+            <span class="profile-icon">⚠️</span>
+            <span class="profile-name">Ingen profil vald</span>
+        `;
+    }
+}
 
 // Collapsible sections in hamburger menu
 function setupCollapsible(toggleId, contentId) {
@@ -752,6 +775,7 @@ if (loadScheduleBtn) {
             return;
         }
 
+        updateActiveProfileIndicator();
         document.getElementById('settingsModalOverlay').classList.add('active');
 
         const scheduleContent = document.getElementById('scheduleSettingsContent');
@@ -841,7 +865,7 @@ function init() {
         }
     }
 
-    console.log('VRkalender v0.99 initialized');
+    console.log('VRkalender v1.0 initialized');
 }
 
 // Run initialization when DOM is ready

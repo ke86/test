@@ -45,6 +45,40 @@
     border-top: 1px solid var(--border);
 }
 
+/* Active profile indicator in settings */
+.active-profile-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.active-profile-indicator .profile-icon {
+    font-size: 16px;
+}
+
+.active-profile-indicator .profile-label {
+    color: var(--text-secondary);
+}
+
+.active-profile-indicator .profile-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.active-profile-indicator.no-profile {
+    background: rgba(255, 149, 0, 0.15);
+    color: var(--ios-orange);
+}
+
+.active-profile-indicator.no-profile .profile-label,
+.active-profile-indicator.no-profile .profile-name {
+    color: var(--ios-orange);
+}
+
 .settings-section-title {
     font-size: 13px;
     font-weight: 400;
