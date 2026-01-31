@@ -410,6 +410,15 @@ function updateActiveProfileIndicator() {
     }
 }
 
+// Settings button in header (opens settings modal)
+const settingsBtn = document.getElementById('settingsBtn');
+if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+        updateActiveProfileIndicator();
+        document.getElementById('settingsModalOverlay').classList.add('active');
+    });
+}
+
 // Collapsible sections in hamburger menu
 function setupCollapsible(toggleId, contentId) {
     const toggle = document.getElementById(toggleId);
@@ -865,7 +874,7 @@ function init() {
         }
     }
 
-    console.log('VRkalender v1.0 initialized');
+    console.log('VRkalender v1.01 initialized');
 }
 
 // Run initialization when DOM is ready

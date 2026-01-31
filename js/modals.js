@@ -600,17 +600,11 @@ export function initModals() {
     }
 
     // Settings modal
-    const settingsBtn = document.getElementById('settingsBtn');
+    // Note: settingsBtn click handler is in app.js to allow profile indicator update
     const settingsModalOverlay = document.getElementById('settingsModalOverlay');
     const settingsModalClose = document.getElementById('settingsModalClose');
     const showSwedishHolidaysCheckbox = document.getElementById('showSwedishHolidays');
     const showNorwegianHolidaysCheckbox = document.getElementById('showNorwegianHolidays');
-
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-            settingsModalOverlay.classList.add('active');
-        });
-    }
 
     if (settingsModalClose) {
         settingsModalClose.addEventListener('click', () => {
