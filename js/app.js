@@ -337,29 +337,138 @@ document.getElementById('todayBtn').addEventListener('click', () => {
 });
 
 // ===== VIEW TOGGLE =====
-const calendarToggle = document.getElementById('calendarToggle');
-const monthListToggle = document.getElementById('monthListToggle');
+const calendarListToggle = document.getElementById('calendarListToggle');
 const listToggle = document.getElementById('listToggle');
+const workingTodayToggleBtn = document.getElementById('workingTodayToggleBtn');
 const calendarView = document.getElementById('calendarView');
 const monthListView = document.getElementById('monthListView');
 const listView = document.getElementById('listView');
+
+// Track current view state for calendar/list toggle
+let isCalendarView = true;
 
 function showView(view) {
     calendarView.style.display = view === 'calendar' ? 'block' : 'none';
     monthListView.style.display = view === 'monthList' ? 'block' : 'none';
     listView.style.display = view === 'list' ? 'block' : 'none';
 
-    calendarToggle.classList.toggle('active', view === 'calendar');
-    monthListToggle.classList.toggle('active', view === 'monthList');
+    // Update toggle button states
+    calendarListToggle.classList.toggle('active', view === 'calendar' || view === 'monthList');
     listToggle.classList.toggle('active', view === 'list');
+    workingTodayToggleBtn.classList.remove('active');
+
+    // Update calendar/list toggle icon
+    const calendarIcon = calendarListToggle.querySelector('.calendar-icon');
+    const listIcon = calendarListToggle.querySelector('.list-icon');
+    if (view === 'calendar') {
+        isCalendarView = true;
+        calendarIcon.style.display = 'block';
+        listIcon.style.display = 'none';
+    } else if (view === 'monthList') {
+        isCalendarView = false;
+        calendarIcon.style.display = 'none';
+        listIcon.style.display = 'block';
+    }
 
     if (view === 'monthList') renderMonthListView();
     if (view === 'list') renderListView();
 }
 
-calendarToggle.addEventListener('click', () => showView('calendar'));
-monthListToggle.addEventListener('click', () => showView('monthList'));
+// Calendar/List toggle - switches between calendar and list view
+calendarListToggle.addEventListener('click', () => {
+    if (isCalendarView) {
+        showView('monthList');
+    } else {
+        showView('calendar');
+    }
+});
+
+// Helgdagar toggle
 listToggle.addEventListener('click', () => showView('list'));
+
+// Vem jobbar idag - show modal
+workingTodayToggleBtn.addEventListener('click', () => {
+    showWorkingTodayModal();
+});
+
+// Show "Vem jobbar idag" modal
+function showWorkingTodayModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'workingTodayModal';
+
+    // Get working today data
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const dayNames = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+    const monthNames = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
+
+    const workingToday = [];
+    profiles.forEach(profile => {
+        if (!profile.data || !profile.data.shiftData) return;
+        const shift = profile.data.shiftData.get(todayKey);
+        if (shift && shift.start && shift.end) {
+            const hasFP = profile.data.fpDays && profile.data.fpDays.has(todayKey);
+            const hasFPV = profile.data.fpvDays && profile.data.fpvDays.has(todayKey);
+            const hasParental = profile.data.parentalLeaveDays && profile.data.parentalLeaveDays.has(todayKey);
+            const hasVacation = profile.data.vacationDays && profile.data.vacationDays.has(todayKey);
+
+            if (!hasFP && !hasFPV && !hasParental && !hasVacation) {
+                workingToday.push({
+                    name: profile.name,
+                    start: shift.start,
+                    end: shift.end
+                });
+            }
+        }
+    });
+
+    workingToday.sort((a, b) => a.start.localeCompare(b.start));
+
+    let listHtml = '';
+    if (workingToday.length === 0) {
+        listHtml = '<p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Inga personer jobbar idag<br>(baserat på inlästa profiler)</p>';
+    } else {
+        workingToday.forEach(person => {
+            listHtml += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <span style="font-weight: 500; color: var(--text-primary);">${person.name}</span>
+                    <span style="color: var(--text-secondary); font-size: 14px;">${person.start} - ${person.end}</span>
+                </div>
+            `;
+        });
+    }
+
+    modal.innerHTML = `
+        <div class="holiday-info-modal" style="padding: 24px; max-width: 360px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-size: 18px; color: var(--text-primary); margin: 0;">👷 Vem jobbar idag?</h2>
+                <button class="modal-close" id="workingTodayClose" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                ${dayNames[today.getDay()]} ${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}
+            </p>
+            <div class="working-today-list">
+                ${listHtml}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('workingTodayClose').addEventListener('click', () => {
+        modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
 
 // ===== HAMBURGER MENU =====
 const hamburgerBtn = document.getElementById('hamburgerBtn');

@@ -121,6 +121,53 @@ body {
     box-shadow: var(--shadow);
 }
 
+/* View toggle button with icons (calendar/list toggle) */
+.view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    min-width: 44px;
+}
+
+.view-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.view-toggle-btn .calendar-icon,
+.view-toggle-btn .list-icon {
+    display: block;
+}
+
+/* Working today button with icon and text */
+.working-today-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 10px;
+    min-width: auto;
+    flex: 0 1 auto;
+}
+
+.working-today-toggle svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.working-today-toggle span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .settings-in-toggle,
 .menu-in-toggle {
     width: 32px;
